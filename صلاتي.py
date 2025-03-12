@@ -14,8 +14,8 @@ def Aladhan() -> dict: # https://aladhan.com/prayer-times-api
 
 times, linux, reupdate_id, notifi = Aladhan().get('timings', {}), True if __import__('platform').system() == 'Linux' else False, None, False
 
-windows, span, font_height, frame_heights = ['main', 'settings'], 20, int, []
-font_settings = Settings.read()['font']
+windows, font_settings, frame_heights = ['main', 'settings'], Settings.read()['font'], []
+span = font_settings[0][1]
 root = tk.Tk(); root.title('صلاتي')
 root.config(bg='black')
 try: root.iconphoto(True, tk.PhotoImage(file='icon.png'))
