@@ -14,7 +14,7 @@ def Aladhan() -> dict: # https://aladhan.com/prayer-times-api
 
 times, linux, reupdate_id, notifi = Aladhan().get('timings', {}), True if __import__('platform').system() == 'Linux' else False, None, False
 
-windows, span, font_height = ['main', 'settings'], 20, int
+windows, span, font_height, frame_heights = ['main', 'settings'], 20, int, []
 font_settings = Settings.read()['font']
 root = tk.Tk(); root.title('صلاتي')
 root.config(bg='black')
@@ -62,13 +62,13 @@ def update(event):
                 label.place(x=x_offset + (element_width-label.winfo_width())//2, y=window_size[1] - font_height*2)
                 x_offset += element_width + x_span
             line.place(width=root.winfo_screenwidth(), y=window_size[1] - font_height*2)
-            top_frame = window_size[1] - font_height*2 + span
+            y_span = [(window_size[1] - frame_heights[0])//2, (window_size[1] - frame_heights[1])//2, 0]
 
-            shown_prayer = nearest_prayer(times, prayer_times)
+            shown_prayer = nearest_prayer(times, prayer_times) or [None, None, None]
             time_left_label.config(text=shown_prayer[1] if times else '--:--:--', **center_config)
-            time_left_label.place(x=(window_size[0] - time_left_label.winfo_width())//2, y=top_frame//2)
+            time_left_label.place(x=(window_size[0] - time_left_label.winfo_width())//2, y=y_span[0])
             shown_prayer_label.config(text=prayer_times[shown_prayer[0]][0]  if times else  '--', **center_config)
-            shown_prayer_label.place(x=(window_size[0] - shown_prayer_label.winfo_width())//2, y=top_frame//2 - shown_prayer_label.winfo_height())
+            shown_prayer_label.place(x=(window_size[0] - shown_prayer_label.winfo_width())//2, y=y_span[0] - shown_prayer_label.winfo_height())
             notifications(shown_prayer[2])
 
             reupdate_id = root.after(100, lambda: update(event))
@@ -76,15 +76,15 @@ def update(event):
     elif windows[0] == 'settings': pass
 
 def main(): # تنسيق شاشة العرض
-    global font_height, labels
+    global font_height, labels, frame_heights
     x_offset, font_height = span, list(labels['Fajr'].keys())[0][0].winfo_height()
     for element in list(labels.values()):
         label, time = list(*element.keys())
         element_width = max(label.winfo_width(), time.winfo_width())
         element[(label, time)] = element_width
         x_offset += element_width + span
-    bottom_frame, top_frame = font_height*2 + span, time_left_label.winfo_height() + shown_prayer_label.winfo_height() + span
-    min_x, min_y = x_offset, bottom_frame + top_frame
+    frame_heights = [font_height*2 + span, time_left_label.winfo_height() + shown_prayer_label.winfo_height() + span, 0]
+    min_x, min_y = x_offset, sum(frame_heights)
     root.minsize(min_x, min_y); root.maxsize(root.winfo_screenwidth(), root.winfo_screenheight())
     screen_x, screen_y = (root.winfo_screenwidth() - min_x)//2, round((root.winfo_screenheight() - min_y)/2)
     root.geometry(f'{root.winfo_reqwidth()}x{root.winfo_reqheight()}+{screen_x}+{screen_y}')
