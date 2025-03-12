@@ -25,6 +25,7 @@ def format_time(time, format_type: int = None) -> str:
         if format_type == 12: return f"{hours % 12 or 12}:{minutes:02}:{seconds:02} {"AM" if hours < 12 else "PM"}".replace(":00 ", ' ')
         elif format_type == 24: return f"{hours}:{minutes:02}:{seconds:02} ".replace(":00 ", ' ').strip(' ')
         elif format_type == 60: return f"{minutes + hours*60}:{seconds:02}"
+        elif format_type == 1440: return f"{hours}:{minutes:02}:{seconds:02} ".lstrip("0:")
         elif format_type == 3600: return str(total_seconds)
         return f"{hours}:{minutes:02}:{seconds:02}"
 
@@ -45,5 +46,5 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     sorted_prayers = sorted(prayer_data, key=lambda x: x['time_diff'])
     first, second, time_after = sorted_prayers[0], sorted_prayers[-1], 2100 # وقت إبقاء العرض بعد الأذان
     if abs(second['time_diff'] - 86400) <= time_after and abs(second['time_diff'] - 86400) < first['time_diff']:
-        return (second['name'], format_time(second['time_diff'] - 86400, 24), second['time_diff'])
-    return (first['name'], '- ' + format_time(first['time_diff'], 24), first['time_diff'])
+        return (second['name'], format_time(second['time_diff'] - 86400, 1400), second['time_diff'])
+    return (first['name'], '- ' + format_time(first['time_diff'], 1400), first['time_diff'])
