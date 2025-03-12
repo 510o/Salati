@@ -12,7 +12,7 @@ def Aladhan() -> dict: # https://aladhan.com/prayer-times-api
     except: return {}
     # print(list(Aladhan().keys())) # --> ['timings', 'date', 'meta'] المفاتيح الأساسية
 
-times, linux, reupdate_id, notifi = Aladhan().get('timings', {}), True if __import__('platform').system() else False, None, False
+times, linux, reupdate_id, notifi = Aladhan().get('timings', {}), True if __import__('platform').system() == 'Linux' else False, None, False
 
 windows, span, font_height = ['main', 'settings'], 20, int
 font_settings = Settings.read()['font']

@@ -22,7 +22,9 @@ def format_time(time, format_type: int = None) -> str:
             total_seconds = abs(int(time))
             hours, rem = divmod(total_seconds, 3600)
             minutes, seconds = divmod(rem, 60)
-        if format_type == 12: return f"{"ﺹ" if hours < 12 else "ﻡ"} {hours % 12 or 12}:{minutes:02}:{seconds:02}".rstrip(":00")
+        if format_type == 12:
+            if __import__('platform').system() == 'Linux': return f"{"ﺹ" if hours < 12 else "ﻡ"} {hours % 12 or 12}:{minutes:02}:{seconds:02}".rstrip(":00")
+            return f"{hours % 12 or 12}:{minutes:02}:{seconds:02} {"ﺹ" if hours < 12 else "ﻡ"}".replace(":00 ", ' ')
         elif format_type == 24: return f"{hours}:{minutes:02}:{seconds:02}".lstrip("00").lstrip(":")
         elif format_type == 60: return f"{minutes + hours*60}:{seconds:02}"
         elif format_type == 3600: return str(total_seconds)
