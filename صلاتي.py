@@ -1,47 +1,10 @@
 from prayerutils import parse_time, format_time, nearest_prayer
 from requests import get # pip install requests
-from tkinter import font as fonts
+from tkinter import font as fonts # fonts.families())
 from settings import Settings
 import tkinter as tk
 
-def Aladhan() -> dict: # https://aladhan.com/prayer-times-api
-    aladhan = Settings.read()['aladhan']
-    try:
-        response = get(f"https://api.aladhan.com/v1/timings?latitude={aladhan[0][0]}&longitude={aladhan[0][1]}")
-        return response.json()["data"]
-    except: return {}
-    # print(list(Aladhan().keys())) # --> ['timings', 'date', 'meta'] المفاتيح الأساسية
-
-times, linux, reupdate_id, notifi = Aladhan().get('timings', {}), True if __import__('platform').system() == 'Linux' else False, None, False
-
-windows, font_settings, frame_heights = ['main', 'settings'], Settings.read()['font'], []
-span = font_settings[0][1]
 root = tk.Tk(); root.title('صلاتي')
-root.config(bg='black')
-try: root.iconphoto(True, tk.PhotoImage(file='icon.png'))
-except tk.TclError as e: print(e)
-
-prayer_times = {
-    'Fajr':('ﺮﺠﻔﻟﺍ' if linux else 'الفجر', 'Sunrise'), 'Sunrise': ('ﻕﻭﺮﺸﻟﺍ' if linux else 'الشروق', 'Dhuhr'), 'Dhuhr': ('ﺮﻬﻈﻟﺍ' if linux else 'الظهر', 'Asr'),
-    'Asr': ('ﺮﺼﻌﻟﺍ' if linux else 'العصر', 'Maghrib'), 'Maghrib': ('ﺏﺮﻐﻤﻟﺍ' if linux else 'المغرب', 'Isha'), 'Isha': ('ءﺎﺸﻌﻟﺍ' if linux else 'العشاء', 'Firstthird'),
-    'Firstthird': ('ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الأول', 'Midnight'), 'Midnight': ('ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ' if linux else 'منتصف الليل', 'Lastthird'),
-    'Lastthird': ('ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الآخر', 'Fajr')}
-exception_times = ['Firstthird', 'Midnight', 'Lastthird']
-
-labels_config, labels = {'font':font_settings[0], 'fg':font_settings[1][0], 'bg':font_settings[1][1]}, {} # { 'prayer': {('name', 'time'): width} }
-for key in prayer_times:
-    if key not in exception_times:
-        labels[key] = {(tk.Label(root, text=prayer_times[key][0], **labels_config), # الصلاة
-            tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', **labels_config)): # وقتها
-                int} # عرضها
-
-line = tk.Frame(root, height=3, bg=font_settings[1][0])
-center_config = {'fg': font_settings[1][0], 'bg': font_settings[1][1], 'font': (font_settings[0][0], str(round(int(font_settings[0][1])*1.5)))}
-time_left_label = tk.Label(root, **center_config)
-shown_prayer_label = tk.Label(root, **center_config)
-
-for obj in root.winfo_children(): obj.place(x=0, y=0) # ادراج العناصر
-
 def notifications(time_left):
     if notifi:
         pass
@@ -75,7 +38,7 @@ def update(event):
 
     elif windows[0] == 'settings': pass
 
-def main(): # تنسيق شاشة العرض
+def window(): # تنسيق شاشة العرض
     global font_height, labels, frame_heights
     x_offset, font_height = span, list(labels['Fajr'].keys())[0][0].winfo_height()
     for element in list(labels.values()):
@@ -90,5 +53,36 @@ def main(): # تنسيق شاشة العرض
     root.geometry(f'{root.winfo_reqwidth()}x{root.winfo_reqheight()}+{screen_x}+{screen_y}')
     root.bind("<Configure>", update)
 
-root.after(200, main)
-root.mainloop()
+def main():
+    global data, times, reupdate_id, notifi, windows, span, prayer_times, labels, line, center_config, time_left_label, shown_prayer_label
+    
+    data = Settings.read()
+    try: aladhan = get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]
+    except: aladhan = {} # https://aladhan.com/prayer-times-api
+    times, linux, reupdate_id, notifi = aladhan.get('timings', {}), True if data['system'] == 'Linux' else False, None, False
+    windows, font_settings, frame_heights = ['main', 'settings'], data['font'], []
+    span = font_settings[0][1]
+    root.config(bg='black')
+    try: root.iconphoto(True, tk.PhotoImage(file='icon.png'))
+    except tk.TclError as e: print(e)
+
+    prayer_times = {
+        'Fajr':('ﺮﺠﻔﻟﺍ' if linux else 'الفجر', 'Sunrise'), 'Sunrise': ('ﻕﻭﺮﺸﻟﺍ' if linux else 'الشروق', 'Dhuhr'), 'Dhuhr': ('ﺮﻬﻈﻟﺍ' if linux else 'الظهر', 'Asr'),
+        'Asr': ('ﺮﺼﻌﻟﺍ' if linux else 'العصر', 'Maghrib'), 'Maghrib': ('ﺏﺮﻐﻤﻟﺍ' if linux else 'المغرب', 'Isha'), 'Isha': ('ءﺎﺸﻌﻟﺍ' if linux else 'العشاء', 'Firstthird'),
+        'Firstthird': ('ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الأول', 'Midnight'), 'Midnight': ('ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ' if linux else 'منتصف الليل', 'Lastthird'),
+        'Lastthird': ('ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الآخر', 'Fajr')}
+    exception_times = ['Firstthird', 'Midnight', 'Lastthird']
+
+    labels_config, labels = {'font':font_settings[0], 'fg':font_settings[1][0], 'bg':font_settings[1][1]}, {} # { 'prayer': {('name', 'time'): width} }
+    for key in prayer_times:
+        if key not in exception_times:
+            labels[key] = {(tk.Label(root, text=prayer_times[key][0], **labels_config), # الصلاة
+                tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', **labels_config)): # وقتها
+                    int} # عرضها
+    line = tk.Frame(root, height=3, bg=font_settings[1][0])
+    center_config = {'fg': font_settings[1][0], 'bg': font_settings[1][1], 'font': (font_settings[0][0], str(round(int(font_settings[0][1])*1.5)))}
+    time_left_label = tk.Label(root, **center_config)
+    shown_prayer_label = tk.Label(root, **center_config)
+    for obj in root.winfo_children(): obj.place(x=0, y=0) # ادراج العناصر
+    root.after(200, window)
+main(); root.mainloop()
