@@ -23,9 +23,9 @@ def format_time(time, format_type: int = None) -> str:
             hours, rem = divmod(total_seconds, 3600)
             minutes, seconds = divmod(rem, 60)
         if format_type == 12: return f"{hours % 12 or 12}:{minutes:02}:{seconds:02} {"AM" if hours < 12 else "PM"}".replace(":00 ", ' ')
-        elif format_type == 24: return f"{hours}:{minutes:02}:{seconds:02} ".replace(":00 ", ' ').strip(' ')
+        elif format_type == 24: return f"{hours}:{minutes:02}:{seconds:02} ".replace(":00 ", '').rstrip()
         elif format_type == 60: return f"{minutes + hours*60}:{seconds:02}"
-        elif format_type == 1440: return f"{hours}:{minutes:02}:{seconds:02} ".lstrip("0:")
+        elif format_type == 1440: return f" {hours}:{minutes:02}:{seconds:02}".replace(" 0:", '').lstrip()
         elif format_type == 3600: return str(total_seconds)
         return f"{hours}:{minutes:02}:{seconds:02}"
 
