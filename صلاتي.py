@@ -28,15 +28,15 @@ prayer_times = {
     'Lastthird': ('ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الآخر', 'Fajr')}
 exception_times = ['Firstthird', 'Midnight', 'Lastthird']
 
-labels = {} # { 'prayer': {('name', 'time'): width} }
+labels_config, labels = {'font':font_settings[0], 'fg':font_settings[1][0], 'bg':font_settings[1][1]}, {} # { 'prayer': {('name', 'time'): width} }
 for key in prayer_times:
     if key not in exception_times:
-        labels[key] = {(tk.Label(root, font=font_settings[0], text=prayer_times[key][0], fg=font_settings[1][0], bg=font_settings[1][1]), # الصلاة
-            tk.Label(root, font=font_settings[0], text=format_time(times.get(key)) if times else '--:--:--', fg=font_settings[1][0], bg=font_settings[1][1])): # وقتها
+        labels[key] = {(tk.Label(root, text=prayer_times[key][0], **labels_config), # الصلاة
+            tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', **labels_config)): # وقتها
                 int} # عرضها
 
 line = tk.Frame(root, height=3, bg=font_settings[1][0])
-center_config = {'fg': font_settings[1][0], 'bg': font_settings[1][1], 'font': (font_settings[0][0], str(round(int(font_settings[0][1])*1.4)))}
+center_config = {'fg': font_settings[1][0], 'bg': font_settings[1][1], 'font': (font_settings[0][0], str(round(int(font_settings[0][1])*1.5)))}
 time_left_label = tk.Label(root, **center_config)
 shown_prayer_label = tk.Label(root, **center_config)
 

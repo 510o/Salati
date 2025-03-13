@@ -46,5 +46,5 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     sorted_prayers = sorted(prayer_data, key=lambda x: x['time_diff'])
     first, second, time_after = sorted_prayers[0], sorted_prayers[-1], 2100 # وقت إبقاء العرض بعد الأذان
     if abs(second['time_diff'] - 86400) <= time_after and abs(second['time_diff'] - 86400) < first['time_diff']:
-        return (second['name'], format_time(second['time_diff'] - 86400, 1400), second['time_diff'])
-    return (first['name'], '- ' + format_time(first['time_diff'], 1400), first['time_diff'])
+        return (second['name'], format_time(second['time_diff'] - 86400, 1440), second['time_diff'])
+    return (first['name'], '- ' + format_time(first['time_diff'], 1440), first['time_diff'])
