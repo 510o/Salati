@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta, date, time as dt_time
-from settings import Settings
+from datetime import datetime, timedelta, time as dt_time
 
 def parse_time(time_str: str) -> dt_time:
     if isinstance(time_str, int):
@@ -12,8 +11,7 @@ def parse_time(time_str: str) -> dt_time:
     return None
 
 
-def format_time(time, format_type: int = None) -> str:
-    format_type = format_type or Settings.read()['time format'][0]
+def format_time(time, format_type: int = __import__('settings').read()['time format'][0]) -> str:
     if isinstance(time, (int, float, str)):
         if isinstance(time, str):
             time_str = parse_time(time).strftime("%H:%M:%S")
