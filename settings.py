@@ -7,24 +7,27 @@ def Location() -> (list, None):
         return float(lat), float(lon)
     except: return None
 
-_cache, default_data = None, {"font": [["", 15], ['white', 'black']], "time format": [12, 24], "aladhan": [Location(), int]} 
+_cache, default_data = None, {"font": [["", 15], ['white', 'black']], "time format": [12, 24], "aladhan": [Location(), "int"], "backup": {}, "system": str(__import__('platform').system())} 
 def read() -> dict:
     if _cache: return _cache
     try:
         with open(".settings") as file:
             data_payload = load(file)
             if not data_payload['aladhan'][0]: data_payload['aladhan'][0] = Location()
-            for key, value in data_payload.items():
-                data_payload[key] = [globals().get(v, v) if isinstance(v, str) else v for v in value] # تفكيك الصيغ المنصصة
-            data_payload["system"] = __import__('platform').system()
+            for key, value in data_payload.items(): # تفكيك الصيغ المنصصة
+                if isinstance(value, list): data_payload[key] = [globals().get(v, v) if isinstance(v, str) else v for v in value]
             return write(data_payload)
     except: return write(default_data)
 
-def edit(section): pass
+def edit(new_section: dict):
+    for key, value in new_section.items():
+        if key in default_data:
+            data = read()
+            data[key] = value
+            return write(data)
 
-def write(data: dict) -> dict:
-    with open(".settings", "w") as file:
-        try:
-            dump(data, file, default=lambda x: x.__name__ if isinstance(x, type) else x)  # تنصيص الصيغ المختلفة
-            _cache = data; return data
-        except: return write(default_data)
+def write(data: dict) -> dict: 
+    if isinstance(data, dict) and data.keys() == default_data.keys():
+        with open(".settings", "w") as file:
+            dump(data, file, indent=4); _cache = data; return data
+    return write(default_data)

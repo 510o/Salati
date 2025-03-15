@@ -1,6 +1,7 @@
 from prayerutils import format_time, nearest_prayer
 from tkinter import font as fonts # fonts.families())
 from requests import get # pip install requests
+from settings import read, edit
 import tkinter as tk
 
 root = tk.Tk(); root.title('صلاتي')
@@ -55,10 +56,10 @@ def window(): # تنسيق شاشة العرض
 def main():
     global data, times, reupdate_id, notifi, windows, span, prayer_times, labels, line, center_config, time_left_label, shown_prayer_label
     
-    data = __import__('settings').read()
-    try: aladhan = get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]
-    except: aladhan = {} # https://aladhan.com/prayer-times-api
-    times, linux, reupdate_id, notifi = aladhan.get('timings', {}), True if data['system'] == 'Linux' else False, None, False
+    data = read()
+    try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]})
+    except: pass # https://aladhan.com/prayer-times-api\
+    times, linux, reupdate_id, notifi = data['backup'].get('timings', {}), True if data['system'] == 'Linux' else False, None, False
     windows, font_settings, frame_heights = ['main', 'settings'], data['font'], []
     span = font_settings[0][1]
     root.config(bg='black')
