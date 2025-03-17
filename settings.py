@@ -1,13 +1,26 @@
-from json import load, dump
-from requests import get
+from json import load, dump; from requests import get
 
-def Location() -> (list, None):
+app_icon, app_title = 'icon.png', 'صلاتي'
+
+prayer_times, exception_times = {
+        'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ', 'Sunrise'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ', 'Dhuhr'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ', 'Asr'),
+        'Asr': ('العصر', 'ﺮﺼﻌﻟﺍ', 'Maghrib'), 'Maghrib': ('المغرب', 'ﺏﺮﻐﻤﻟﺍ', 'Isha'), 'Isha': ('العشاء', 'ءﺎﺸﻌﻟﺍ', 'Firstthird'),
+        'Firstthird': ('الثلث الأول', 'ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ', 'Midnight'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ', 'Lastthird'),
+        'Lastthird': ('الثلث الآخر', 'ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ', 'Fajr')}, ['Firstthird', 'Midnight', 'Lastthird'],
+
+def Location():
     try:
         lat, lon = get("https://ipinfo.io/json").json()["loc"].split(",")
         return float(lat), float(lon)
     except: return None
 
-_cache, default_data = None, {"font": [["", 15], ['white', 'black']], "time format": [12, 24], "aladhan": [Location(), "int"], "backup": {}, "system": str(__import__('platform').system())} 
+def prayer_message(prayer):
+    try: # maybe: https://dorar-hadith-api.herokuapp.com/api/search
+        return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
+    except: return ''
+
+_cache, default_data = None, {"font": [("", 15), ('white', 'black')], "time format": (12, 24), "aladhan": [Location(), "int"], "backup": {},
+    "system": str(__import__('platform').system()), "notifications": {key: [0, prayer_message(prayer_times[key])] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache
     try:
@@ -20,11 +33,11 @@ def read() -> dict:
     except: return write(default_data)
 
 def edit(new_section: dict):
+    data = read()
     for key, value in new_section.items():
         if key in default_data:
-            data = read()
             data[key] = value
-            return write(data)
+    return write(data)
 
 def write(data: dict) -> dict: 
     if isinstance(data, dict) and data.keys() == default_data.keys():

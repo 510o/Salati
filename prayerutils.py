@@ -11,11 +11,11 @@ def parse_time(time_str: str) -> dt_time:
     return None
 
 
-def format_time(time, format_type: int = __import__('settings').read()['time format'][0]) -> str:
+def format_time(time, format_type: int = __import__("settings").read()['time format'][0]) -> str:
     if isinstance(time, (int, float, str)):
         if isinstance(time, str):
-            time_str = parse_time(time).strftime("%H:%M:%S")
-            if time_str: hours, minutes, seconds = map(int, time_str.split(":"))
+            time_str = parse_time(time).strftime("%H %M %S")
+            if time_str: hours, minutes, seconds = map(int, time_str.split())
         else:
             total_seconds = abs(int(time))
             hours, rem = divmod(total_seconds, 3600)

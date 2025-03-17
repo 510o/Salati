@@ -1,13 +1,19 @@
 from prayerutils import format_time, nearest_prayer
 from tkinter import font as fonts # fonts.families())
+from plyer import notification # pip install plyer
 from requests import get # pip install requests
-from settings import read, edit
+from settings import *
 import tkinter as tk
 
-root = tk.Tk(); root.title('صلاتي')
-def notifications(time_left):
-    if notifi:
-        pass
+root, working = tk.Tk(), True; root.title(app_title)
+try: root.iconphoto(True, tk.PhotoImage(file=app_icon))
+except tk.TclError as e: print(e)
+
+def notifications(prayer, _, time_left):
+    def time_out(): global working; working = not working
+    if working and notifi.get(prayer, [None])[0] == round(time_left/60, 2):
+        notification.notify( app_name=app_title, title=f"وقت {prayer_times[prayer][0]}", message=notifi[prayer][1], app_icon=app_icon)
+        time_out(); root.after(60000, time_out)
 
 def update(event):
     global reupdate_id, times
@@ -30,9 +36,9 @@ def update(event):
             shown_prayer = nearest_prayer(times, prayer_times) or [None, None, None]
             time_left_label.config(text=shown_prayer[1] if times else '--:--:--', **center_config)
             time_left_label.place(x=(window_size[0] - time_left_label.winfo_width())//2, y=y_span[0])
-            shown_prayer_label.config(text=prayer_times[shown_prayer[0]][0]  if times else  '--', **center_config)
+            shown_prayer_label.config(text=prayer_times[shown_prayer[0]][islinux]  if times else  '--', **center_config)
             shown_prayer_label.place(x=(window_size[0] - shown_prayer_label.winfo_width())//2, y=y_span[0] - shown_prayer_label.winfo_height())
-            notifications(shown_prayer[2])
+            notifications(*shown_prayer)
 
             reupdate_id = root.after(100, lambda: update(event))
 
@@ -54,29 +60,19 @@ def window(): # تنسيق شاشة العرض
     root.bind("<Configure>", update)
 
 def main():
-    global data, times, reupdate_id, notifi, windows, span, prayer_times, labels, line, center_config, time_left_label, shown_prayer_label
+    global times, islinux, reupdate_id, notifi, windows, span, labels, line, center_config, time_left_label, shown_prayer_label
     
     data = read()
     try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]})
     except: pass # https://aladhan.com/prayer-times-api\
-    times, linux, reupdate_id, notifi = data['backup'].get('timings', {}), True if data['system'] == 'Linux' else False, None, False
+    times, notifi, islinux, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, None
     windows, font_settings, frame_heights = ['main', 'settings'], data['font'], []
     span = font_settings[0][1]
     root.config(bg='black')
-    try: root.iconphoto(True, tk.PhotoImage(file='icon.png'))
-    except tk.TclError as e: print(e)
-
-    prayer_times = {
-        'Fajr':('ﺮﺠﻔﻟﺍ' if linux else 'الفجر', 'Sunrise'), 'Sunrise': ('ﻕﻭﺮﺸﻟﺍ' if linux else 'الشروق', 'Dhuhr'), 'Dhuhr': ('ﺮﻬﻈﻟﺍ' if linux else 'الظهر', 'Asr'),
-        'Asr': ('ﺮﺼﻌﻟﺍ' if linux else 'العصر', 'Maghrib'), 'Maghrib': ('ﺏﺮﻐﻤﻟﺍ' if linux else 'المغرب', 'Isha'), 'Isha': ('ءﺎﺸﻌﻟﺍ' if linux else 'العشاء', 'Firstthird'),
-        'Firstthird': ('ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الأول', 'Midnight'), 'Midnight': ('ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ' if linux else 'منتصف الليل', 'Lastthird'),
-        'Lastthird': ('ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ' if linux else 'الثلث الآخر', 'Fajr')}
-    exception_times = ['Firstthird', 'Midnight', 'Lastthird']
-
     labels_config, labels = {'font':font_settings[0], 'fg':font_settings[1][0], 'bg':font_settings[1][1]}, {} # { 'prayer': {('name', 'time'): width} }
     for key in prayer_times:
         if key not in exception_times:
-            labels[key] = {(tk.Label(root, text=prayer_times[key][0], **labels_config), # الصلاة
+            labels[key] = {(tk.Label(root, text=prayer_times[key][islinux], **labels_config), # الصلاة
                 tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', **labels_config)): # وقتها
                     int} # عرضها
     line = tk.Frame(root, height=3, bg=font_settings[1][0])
