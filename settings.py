@@ -1,12 +1,27 @@
+if __name__ == "__main__": exec(open("صلاتي.py").read())
 from json import load, dump; from requests import get
 
 app_icon, app_title = 'icon.png', 'صلاتي'
 
-prayer_times, exception_times = {
-        'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ', 'Sunrise'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ', 'Dhuhr'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ', 'Asr'),
-        'Asr': ('العصر', 'ﺮﺼﻌﻟﺍ', 'Maghrib'), 'Maghrib': ('المغرب', 'ﺏﺮﻐﻤﻟﺍ', 'Isha'), 'Isha': ('العشاء', 'ءﺎﺸﻌﻟﺍ', 'Firstthird'),
-        'Firstthird': ('الثلث الأول', 'ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ', 'Midnight'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ', 'Lastthird'),
-        'Lastthird': ('الثلث الآخر', 'ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ', 'Fajr')}, ['Firstthird', 'Midnight', 'Lastthird'],
+prayer_times, exception_times,  = {
+    'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ'),
+    'Asr': ('العصر', 'ﺮﺼﻌﻟﺍ'), 'Maghrib': ('المغرب', 'ﺏﺮﻐﻤﻟﺍ'), 'Isha': ('العشاء', 'ءﺎﺸﻌﻟﺍ'),
+    'Firstthird': ('الثلث الأول', 'ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ'),
+    'Lastthird': ('الثلث الآخر', 'ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ')}, ['Firstthird', 'Midnight', 'Lastthird']
+
+sky_colors = { # https://coolors.co/color-picker
+    'Fajr': [(0, '#2a2d6f')], 
+    'Sunrise': [(0, '#248AFF')],
+    'Dhuhr': [(0, '#00B7FF')],
+    'Asr': [(50, '#2A8AFF'), (70, '#2A94E5')],
+    'Maghrib': [(0, '#0F5CBA'), (50, '#1D31B6')],
+    'Isha': [(0, '#000265'), (50, '#000066')],
+    'Firstthird': [(0, '#00001a')],
+    'Midnight': [(0, '#000000')],
+    'Lastthird': [(0, '#000000')]}
+
+def hex_to_rbg(h):
+    return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
 
 def Location():
     try:
@@ -19,8 +34,8 @@ def prayer_message(prayer):
         return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
-_cache, default_data = None, {"font": [("", 15), ('white', 'black')], "time format": (12, 24), "aladhan": [Location(), "int"], "backup": {},
-    "system": str(__import__('platform').system()), "notifications": {key: [0, prayer_message(prayer_times[key])] for key in prayer_times if key not in exception_times}}
+_cache, default_data = None, {"font": ("", 15), "time format": (12, 24), "aladhan": [Location(), "int", 35], "backup": {}, "system": str(__import__('platform').system()), "style": (0, ("colors", "monochrome", "white", "black")), 
+    "notifications": {key: [(0, f"وقت {prayer_times[key]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache
     try:
@@ -32,7 +47,7 @@ def read() -> dict:
             return write(data_payload)
     except: return write(default_data)
 
-def edit(new_section: dict):
+def edit(new_section: dict) -> dict:
     data = read()
     for key, value in new_section.items():
         if key in default_data:
@@ -40,7 +55,10 @@ def edit(new_section: dict):
     return write(data)
 
 def write(data: dict) -> dict: 
+    global _cache
     if isinstance(data, dict) and data.keys() == default_data.keys():
         with open(".settings", "w") as file:
             dump(data, file, indent=4); _cache = data; return data
     return write(default_data)
+
+if __name__ == "__main__": exec(open("صلاتي.py").read())
