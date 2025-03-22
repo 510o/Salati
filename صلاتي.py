@@ -6,7 +6,7 @@ from settings import *
 import tkinter as tk
 
 root, working = tk.Tk(), True; root.title(app_title)
-try: root.iconphoto(True, tk.PhotoImage(file=app_icon))
+try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
 def themes() -> dict:

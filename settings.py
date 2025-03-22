@@ -1,7 +1,10 @@
-if __name__ == "__main__": exec(open("صلاتي.py").read())
 from json import load, dump; from requests import get
 
-app_icon, app_title = 'icon.png', 'صلاتي'
+app_icon, app_title, system = 'icon.png', 'صلاتي', __import__('platform').system()
+separator = '\\' if system == 'Windows' else '/'
+folder_path = __file__.rsplit(separator, 1)[0] + separator
+app_path, icon_path = folder_path + app_title + '.py', folder_path + app_icon
+if __name__ == "__main__": exec(open(app_path).read())
 
 prayer_times, exception_times,  = {
     'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ'),
@@ -34,7 +37,7 @@ def prayer_message(prayer):
         return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
-_cache, default_data = None, {"font": ("", 15), "time format": (12, 24), "aladhan": [Location(), "int", 35], "backup": {}, "system": str(__import__('platform').system()), "style": (0, ("colors", "monochrome", "white", "black")), 
+_cache, default_data = None, {"font": ("", 15), "time format": (12, 24), "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (0, ("colors", "monochrome", "white", "black")), 
     "notifications": {key: [(0, f"وقت {prayer_times[key]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache
@@ -60,5 +63,3 @@ def write(data: dict) -> dict:
         with open(".settings", "w") as file:
             dump(data, file, indent=4); _cache = data; return data
     return write(default_data)
-
-if __name__ == "__main__": exec(open("صلاتي.py").read())
