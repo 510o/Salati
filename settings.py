@@ -9,8 +9,8 @@ if __name__ == "__main__": exec(open(app_path).read())
 prayer_times, exception_times,  = {
     'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ'),
     'Asr': ('العصر', 'ﺮﺼﻌﻟﺍ'), 'Maghrib': ('المغرب', 'ﺏﺮﻐﻤﻟﺍ'), 'Isha': ('العشاء', 'ءﺎﺸﻌﻟﺍ'),
-    'Firstthird': ('الثلث الأول', 'ﻝﻭﺄﻟﺍ ﺚﻠﺜﻟﺍ'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ'),
-    'Lastthird': ('الثلث الآخر', 'ﺮﺧﺂﻟﺍ ﺚﻠﺜﻟﺍ')}, ['Firstthird', 'Midnight', 'Lastthird']
+    'Firstthird': ('الثلث الأول', 'ﻝﻭﻷﺍ ﺚﻠﺜﻟﺍ'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ'),
+    'Lastthird': ('الثلث الآخر', 'ﺮﺧﻵﺍ ﺚﻠﺜﻟﺍ')}, ['Firstthird', 'Midnight', 'Lastthird']
 
 sky_colors = { # https://coolors.co/color-picker
     'Fajr': [(0, '#2a2d6f')], 
@@ -37,7 +37,7 @@ def prayer_message(prayer):
         return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
-_cache, default_data = None, {"font": ("", 15), "time format": (12, 24), "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (0, ("colors", "monochrome", "white", "black")), 
+_cache, default_data = None, {"font": ("", 15), "time format": {'format': 12, 'arabic': True}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
     "notifications": {key: [(0, f"وقت {prayer_times[key]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache

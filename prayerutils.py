@@ -13,7 +13,7 @@ def parse_time(time_str: str) -> dt_time:
     return None
 
 
-def format_time(time, format_type: int = read()['time format'][0]) -> str:
+def format_time(time, format_type: int = read()['time format']['format']) -> str:
     if isinstance(time, (int, float, str)):
         if isinstance(time, str):
             time_str = parse_time(time).strftime("%H %M %S")
@@ -22,12 +22,16 @@ def format_time(time, format_type: int = read()['time format'][0]) -> str:
             total_seconds = abs(int(time))
             hours, rem = divmod(total_seconds, 3600)
             minutes, seconds = divmod(rem, 60)
-        if format_type == 12: return f"{hours % 12 or 12}:{minutes:02}:{seconds:02} {"AM" if hours < 12 else "PM"}".replace(":00 ", ' ')
-        elif format_type == 24: return f"{hours}:{minutes:02}:{seconds:02} ".replace(":00 ", '').rstrip()
-        elif format_type == 60: return f"{minutes + hours*60}:{seconds:02}"
-        elif format_type == 1440: return f" {hours}:{minutes:02}:{seconds:02}".replace(" 0:", '').lstrip()
-        elif format_type == 3600: return str(total_seconds)
-        return f"{hours}:{minutes:02}:{seconds:02}"
+        if format_type == 12: result = f"{hours % 12 or 12}:{minutes:02}:{seconds:02} {"AM" if hours < 12 else "PM"}".replace(":00 ", ' ')
+        elif format_type == 24: result = f"{hours}:{minutes:02}:{seconds:02} ".replace(":00 ", '').rstrip()
+        elif format_type == 60: result = f"{minutes + hours*60}:{seconds:02}"
+        elif format_type == 1440: result = f" {hours}:{minutes:02}:{seconds:02}".replace(" 0:", '').lstrip()
+        elif format_type == 3600: result = str(seconds + minutes*60 + hours*3600)
+        else: result = f"{hours}:{minutes:02}:{seconds:02}"
+        if read()['time format']['arabic']:
+            result = result.translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")).replace("AM", "ص").replace("PM", "م")
+            if len(result.split()) > 1 and read()['system'] == 'Linux': result = ' '.join((result.split()[1], result.split()[0]))
+        return result
 
 
 def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
@@ -59,4 +63,4 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
 
     if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
         return (last_prayer['name'], format_time(last_prayer['time_diff'], 1440), last_prayer['time_diff'], current_color)
-    return (next_prayer['name'], '- ' + format_time(next_prayer['time_diff'], 1440), -next_prayer['time_diff'], current_color)
+    return (next_prayer['name'], f'{format_time(next_prayer['time_diff'], 1440)} -' if read()['system'] == 'Linux' and read()['time format']['arabic'] else f'- {format_time(next_prayer['time_diff'], 1440)}', -next_prayer['time_diff'], current_color)

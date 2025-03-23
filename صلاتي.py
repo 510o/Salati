@@ -5,7 +5,7 @@ from prayerutils import *
 from settings import *
 import tkinter as tk
 
-root, working = tk.Tk(), True; root.title(app_title)
+root, working, size_history = tk.Tk(), True, (); root.title(app_title)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
@@ -57,11 +57,11 @@ def update(event):
     elif windows[0] == 'settings': pass
 
 def window():
-    global windows, style, reupdate_id, labels, font_height, line, center_font, frame_heights, times, time_left_label, shown_prayer_label, islinux, notifis
+    global windows, style, reupdate_id, labels, font_height, line, center_font, frame_heights, times, time_left_label, shown_prayer_label, islinux, notifis, size_history
     data = read()
     try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]})
     except: pass # https://aladhan.com/prayer-times-api
-    times, notifis, islinux, windows, style, span, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, ['main', 'settings'], data['style'][1][data['style'][0]], data['font'][1], None
+    times, notifis, islinux, windows, style, span, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, ['main', 'settings'], data['style'][data['style'][0]], data['font'][1], None
     theme, labels = themes(), {} # { 'prayer': {('name', 'time'): width} }
     for key in prayer_times:
         if key not in exception_times:
@@ -84,10 +84,16 @@ def window():
     frame_heights = [font_height*2 + span, time_left_label.winfo_height() + shown_prayer_label.winfo_height() + span, 0]
     min_x, min_y = x_offset, sum(frame_heights)
     root.minsize(min_x, min_y); root.maxsize(root.winfo_screenwidth(), root.winfo_screenheight())
-    screen_x, screen_y = (root.winfo_screenwidth() - min_x)//2, round((root.winfo_screenheight() - min_y)/2)
+    screen_x, screen_y = (root.winfo_screenwidth() - min_x)//2, (root.winfo_screenheight() - min_y)//2
+    
     if screen_x >= 0 and screen_y >= 0:
         root.geometry(f'{root.winfo_reqwidth()}x{root.winfo_reqheight()}+{screen_x}+{screen_y}')
         root.bind("<Configure>", update)
     else:
-        edit()
+        if size_history: new_size = int(abs((size_history[0] - screen_x)*root.winfo_screenwidth()/root.winfo_screenheight() + (size_history[1] - screen_y)*root.winfo_screenheight()/root.winfo_screenwidth()))
+        else: new_size = data['font'][1] - 1
+        size_history = (screen_x, screen_y)
+        edit({'font': (data['font'][0], new_size)})
+        for obj in root.winfo_children(): obj.destroy()
+        root.update(); window()
 window(); root.mainloop()
