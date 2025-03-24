@@ -12,18 +12,19 @@ except tk.TclError as e: print(e)
 def themes() -> dict:
     try: return {'bg': style,  'fg': 'black' if tuple(value//257 for value in root.winfo_rgb(style))[0] > 130 else 'white'}
     except:
-        hex_color = nearest_prayer(times, prayer_times)[3]
+        hex_color = (nearest_prayer(times, prayer_times) or [None, None, None, '#000000'])[3]
         rgb = hex_to_rbg(hex_color)
         lum = int(0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2])
         return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 130 else 'white'}
 
 def notifications(prayer, _, time_left, __):
     def time_out(): global working; working = not working
-    time = round(time_left/60, 2)
-    notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == time), None)
-    if working and notifi:
-        notification.notify( app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
-        time_out(); root.after(10000, time_out)
+    if prayer and time_left:
+        time = round(time_left/60, 2)
+        notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == time), None)
+        if working and notifi:
+            notification.notify( app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
+            time_out(); root.after(10000, time_out)
 
 def update(event):
     global reupdate_id
@@ -59,7 +60,7 @@ def update(event):
 def window():
     global windows, style, reupdate_id, labels, font_height, line, center_font, frame_heights, times, time_left_label, shown_prayer_label, islinux, notifis, size_history
     data = read()
-    try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}").json()["data"]})
+    try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}{('&method=' + str(data['aladhan'][1])) if data['aladhan'][1] != 'int' else ''}").json()["data"]})
     except: pass # https://aladhan.com/prayer-times-api
     times, notifis, islinux, windows, style, span, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, ['main', 'settings'], data['style'][data['style'][0]], data['font'][1], None
     theme, labels = themes(), {} # { 'prayer': {('name', 'time'): width} }
