@@ -1,4 +1,4 @@
-from tkinter import font as fonts # fonts.families())
+from tkinter import font as fonts
 from plyer import notification # pip install plyer
 from requests import get # pip install requests
 from prayerutils import *
@@ -19,12 +19,11 @@ def themes() -> dict:
 
 def notifications(prayer, _, time_left, __):
     def time_out(): global working; working = not working
-    if prayer and time_left:
-        time = round(time_left/60, 2)
-        notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == time), None)
-        if working and notifi:
+    if working and prayer and time_left:
+        notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == round(time_left/60, 2)), None)
+        if notifi:
             notification.notify( app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
-            time_out(); root.after(10000, time_out)
+            time_out(); root.after(50000, time_out)
 
 def update(event):
     global reupdate_id
@@ -43,7 +42,7 @@ def update(event):
                 time.place(x=x_offset + (element_width-time.winfo_width())//2, y=window_size[1] - font_height)
                 label.place(x=x_offset + (element_width-label.winfo_width())//2, y=window_size[1] - font_height*2)
                 x_offset += element_width + x_span
-            line.place(width=root.winfo_screenwidth(), y=window_size[1] - font_height*2); line.config(bg=theme['fg'])
+            line.config(bg=theme['fg']); line.place(width=root.winfo_screenwidth(), y=window_size[1] - font_height*2)
             y_span = [(window_size[1] - frame_heights[0])//2, (window_size[1] - frame_heights[1])//2, 0]
 
             time_left_label.config(text=shown_prayer[1] if times else '--:--:--', font=center_font, **theme)
@@ -62,6 +61,7 @@ def window():
     data = read()
     try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}{('&method=' + str(data['aladhan'][1])) if data['aladhan'][1] != 'int' else ''}").json()["data"]})
     except: pass # https://aladhan.com/prayer-times-api
+    if not data["font"]: data = edit({'font': list(map(fonts.nametofont("TkDefaultFont").actual().get, ["family", "size", "weight", "slant"]))})
     times, notifis, islinux, windows, style, span, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, ['main', 'settings'], data['style'][data['style'][0]], data['font'][1], None
     theme, labels = themes(), {} # { 'prayer': {('name', 'time'): width} }
     for key in prayer_times:
@@ -70,7 +70,7 @@ def window():
                 tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', font=data['font'], **theme)): # وقتها
                     int} # عرضها
     line = tk.Frame(root, height=3, bg=theme['fg'])
-    center_font = (data['font'][0], str(round(int(data['font'][1])*1.5)))
+    center_font = (data['font'][:1], round(data['font'][1]*1.5), data['font'][2:])
     time_left_label = tk.Label(root, **theme, font=center_font)
     shown_prayer_label = tk.Label(root, **theme, font=center_font)
     for obj in root.winfo_children(): obj.place(x=0, y=0) # ادراج العناصر
@@ -91,10 +91,10 @@ def window():
         root.geometry(f'{root.winfo_reqwidth()}x{root.winfo_reqheight()}+{screen_x}+{screen_y}')
         root.bind("<Configure>", update)
     else:
-        if size_history: new_size = int(abs((size_history[0] - screen_x)*root.winfo_screenwidth()/root.winfo_screenheight() + (size_history[1] - screen_y)*root.winfo_screenheight()/root.winfo_screenwidth()))
-        else: new_size = data['font'][1] - 1
+        if size_history: data['font'][1] = int(abs((size_history[0] - screen_x)*root.winfo_screenwidth()/root.winfo_screenheight() + (size_history[1] - screen_y)*root.winfo_screenheight()/root.winfo_screenwidth()))
+        else: data['font'][1] = data['font'][1] - 1
         size_history = (screen_x, screen_y)
-        edit({'font': (data['font'][0], new_size)})
+        edit({'font': data['font']})
         for obj in root.winfo_children(): obj.destroy()
         root.update(); window()
 window(); root.mainloop()
