@@ -1,7 +1,9 @@
+from settings import app_path, read, sky_colors, hex_to_rbg
+from datetime import datetime, timedelta, time as dt_time
 from astral import LocationInfo # pip install astral
 from astral.sun import elevation
-from datetime import datetime, timedelta, time as dt_time
-from settings import app_path, read, sky_colors, hex_to_rbg
+from astral.moon import phase
+from math import cos, pi
 if __name__ == "__main__": exec(open(app_path).read())
 
 def parse_time(time_str: str) -> dt_time:
@@ -53,12 +55,11 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     next_prayer, last_prayer, time_after = sorted_prayers[0], sorted_prayers[-1], read()['aladhan'][2]*60
     last_prayer['time_diff'] = abs(last_prayer['time_diff'] - 86400)
 
-    city = LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]})
-    next_color = min((c for c in sky_colors if c[0] >= elevation(city, now)))
-    last_color = max((c for c in sky_colors if c[0] <= elevation(city, now)))
-    weight = (elevation(city, now) - next_color[0])/(last_color[0] - next_color[0] or 1)
-    mixed = tuple(round(hex_to_rbg(next_color[1])[i]*(1 - weight) + hex_to_rbg(last_color[1])[i]*weight) for i in range(3))
-    current_color = "#{:02x}{:02x}{:02x}".format(*mixed)
+    angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]}), now)
+    next_color, last_color = min((c for c in sky_colors if c[0] >= angle)), max((c for c in sky_colors if c[0] <= angle))
+    if angle < 0: weight = (1 + cos(2*pi*(phase(now)-14)/28))/2
+    else: weight = (angle - next_color[0])/(last_color[0] - next_color[0])
+    current_color = "#{:02x}{:02x}{:02x}".format(*tuple(round(hex_to_rbg(next_color[1])[i]*(1 - weight) + hex_to_rbg(last_color[1])[i]*weight) for i in range(3)))
 
     if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
         return (last_prayer['name'], format_time(last_prayer['time_diff'], 1440), last_prayer['time_diff'], current_color)

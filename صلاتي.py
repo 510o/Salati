@@ -10,13 +10,12 @@ try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
 def themes() -> dict:
-    # return {'bg': 'black', 'fg': 'white'}
-    try: return {'bg': style,  'fg': 'black' if tuple(value//257 for value in root.winfo_rgb(style))[0] > 130 else 'white'}
+    try: return {'bg': style,  'fg': 'black' if tuple(value//257 for value in root.winfo_rgb(style))[0] > 128 else 'white'}
     except:
         hex_color = (nearest_prayer(times, prayer_times) or [None, None, None, '#000000'])[3]
         rgb = hex_to_rbg(hex_color)
         lum = int(0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2])
-        return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 130 else 'white'}
+        return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 128 else 'white'}
 
 def notifications(prayer, _, time_left, __):
     def time_out(): global working; working = not working

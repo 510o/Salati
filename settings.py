@@ -13,11 +13,9 @@ prayer_times, exception_times,  = {
     'Lastthird': ('الثلث الآخر', 'ﺮﺧﻵﺍ ﺚﻠﺜﻟﺍ')}, ['Firstthird', 'Midnight', 'Lastthird']
 
 sky_colors = [ # https://coolors.co/color-picker
-    (0, '#2a2d6f'), 
-    (10, '#5CDEF8'),
-    (50, '#2A8AFF'),
-    (70, '#00CFF8'),
-    (90, '#00B6F8')]
+    (-90, "#0A0A0A"), (0, '#141414'), 
+    (10, '#4096D7'), (50, '#31A2FF'),
+    (70, '#44C4FF'), (90, '#00B6F8')] # ∠90 التعامد
 
 def hex_to_rbg(h):
     return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
