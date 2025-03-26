@@ -4,7 +4,7 @@ app_icon, app_title, system = 'icon.png', 'صلاتي', __import__('platform').s
 separator = '\\' if system == 'Windows' else '/'
 folder_path = __file__.rsplit(separator, 1)[0] + separator
 app_path, icon_path = folder_path + app_title + '.py', folder_path + app_icon
-if __name__ == "__main__": exec(open(app_path).read())
+if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 
 prayer_times, exception_times,  = {
     'Fajr':('الفجر', 'ﺮﺠﻔﻟﺍ'), 'Sunrise': ('الشروق', 'ﻕﻭﺮﺸﻟﺍ'), 'Dhuhr': ('الظهر', 'ﺮﻬﻈﻟﺍ'),
@@ -32,7 +32,7 @@ def prayer_message(prayer):
     except: return ''
 
 _cache, default_data = None, {"font": None, "time format": {'format': 12, 'arabic': False}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
-    "notifications": {key: [(0, f"وقت {prayer_times[key]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
+    "notifications": {key: [(0, f"وقت {prayer_times[key][0]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache
     try:

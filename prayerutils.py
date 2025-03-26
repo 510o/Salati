@@ -1,10 +1,10 @@
 from settings import app_path, read, sky_colors, hex_to_rbg
+if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 from datetime import datetime, timedelta, time as dt_time
 from astral import LocationInfo # pip install astral
 from astral.sun import elevation
 from astral.moon import phase
 from math import cos, pi
-if __name__ == "__main__": exec(open(app_path).read())
 
 def parse_time(time_str: str) -> dt_time:
     if isinstance(time_str, int):

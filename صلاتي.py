@@ -22,8 +22,8 @@ def notifications(prayer, _, time_left, __):
     if working and prayer and time_left:
         notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == round(time_left/60, 2)), None)
         if notifi:
-            notification.notify( app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
-            time_out(); root.after(50000, time_out)
+            notification.notify(app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
+            time_out(); root.after(10000, time_out)
 
 def update(event):
     global reupdate_id
