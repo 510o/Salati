@@ -10,6 +10,7 @@ try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
 def themes() -> dict:
+    # return {'bg': 'black', 'fg': 'white'}
     try: return {'bg': style,  'fg': 'black' if tuple(value//257 for value in root.winfo_rgb(style))[0] > 130 else 'white'}
     except:
         hex_color = (nearest_prayer(times, prayer_times) or [None, None, None, '#000000'])[3]
@@ -61,7 +62,9 @@ def window():
     data = read()
     try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}{('&method=' + str(data['aladhan'][1])) if data['aladhan'][1] != 'int' else ''}").json()["data"]})
     except: pass # https://aladhan.com/prayer-times-api
-    if not data["font"]: data = edit({'font': list(map(fonts.nametofont("TkDefaultFont").actual().get, ["family", "size", "weight", "slant"]))})
+    if not data["font"]:
+        family, size, weight, slant = map(fonts.nametofont("TkDefaultFont").actual().get, ["family", "size", "weight", "slant"])
+        data = edit({'font': [family, round(size*1.5), weight, slant]})
     times, notifis, islinux, windows, style, span, reupdate_id = data['backup'].get('timings', {}), data['notifications'], 1 if data['system'] == 'Linux' else 0, ['main', 'settings'], data['style'][data['style'][0]], data['font'][1], None
     theme, labels = themes(), {} # { 'prayer': {('name', 'time'): width} }
     for key in prayer_times:
@@ -91,7 +94,7 @@ def window():
         root.geometry(f'{root.winfo_reqwidth()}x{root.winfo_reqheight()}+{screen_x}+{screen_y}')
         root.bind("<Configure>", update)
     else:
-        if size_history: data['font'][1] = int(abs((size_history[0] - screen_x)*root.winfo_screenwidth()/root.winfo_screenheight() + (size_history[1] - screen_y)*root.winfo_screenheight()/root.winfo_screenwidth()))
+        if size_history: data['font'][1] = round(abs((size_history[0] - screen_x)*root.winfo_screenwidth()/root.winfo_screenheight() + (size_history[1] - screen_y)*root.winfo_screenheight()/root.winfo_screenwidth()))
         else: data['font'][1] = data['font'][1] - 1
         size_history = (screen_x, screen_y)
         edit({'font': data['font']})

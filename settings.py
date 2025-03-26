@@ -37,7 +37,7 @@ def prayer_message(prayer):
         return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
-_cache, default_data = None, {"font": None, "time format": {'format': 12, 'arabic': True}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
+_cache, default_data = None, {"font": None, "time format": {'format': 12, 'arabic': False}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
     "notifications": {key: [(0, f"وقت {prayer_times[key]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache
