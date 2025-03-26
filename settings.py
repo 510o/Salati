@@ -12,16 +12,12 @@ prayer_times, exception_times,  = {
     'Firstthird': ('الثلث الأول', 'ﻝﻭﻷﺍ ﺚﻠﺜﻟﺍ'), 'Midnight': ('منتصف الليل', 'ﻞﻴﻠﻟﺍ ﻒﺼﺘﻨﻣ'),
     'Lastthird': ('الثلث الآخر', 'ﺮﺧﻵﺍ ﺚﻠﺜﻟﺍ')}, ['Firstthird', 'Midnight', 'Lastthird']
 
-sky_colors = { # https://coolors.co/color-picker
-    'Fajr': [(0, '#2a2d6f')], 
-    'Sunrise': [(0, '#248AFF')],
-    'Dhuhr': [(0, '#00B7FF')],
-    'Asr': [(50, '#2A8AFF'), (70, '#2A94E5')],
-    'Maghrib': [(0, '#0F5CBA'), (50, '#1D31B6')],
-    'Isha': [(0, '#000265'), (50, '#000066')],
-    'Firstthird': [(0, '#00001a')],
-    'Midnight': [(0, '#000000')],
-    'Lastthird': [(0, '#000000')]}
+sky_colors = [ # https://coolors.co/color-picker
+    (0, '#2a2d6f'), 
+    (10, '#5CDEF8'),
+    (50, '#2A8AFF'),
+    (70, '#00CFF8'),
+    (90, '#00B6F8')]
 
 def hex_to_rbg(h):
     return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))

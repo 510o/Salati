@@ -1,3 +1,5 @@
+from astral import LocationInfo # pip install astral
+from astral.sun import elevation
 from datetime import datetime, timedelta, time as dt_time
 from settings import app_path, read, sky_colors, hex_to_rbg
 if __name__ == "__main__": exec(open(app_path).read())
@@ -50,15 +52,12 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     sorted_prayers = sorted(prayer_data, key=lambda x: x['time_diff'])
     next_prayer, last_prayer, time_after = sorted_prayers[0], sorted_prayers[-1], read()['aladhan'][2]*60
     last_prayer['time_diff'] = abs(last_prayer['time_diff'] - 86400)
-    
-    ratio = last_prayer['time_diff']/(last_prayer['time_diff'] + next_prayer['time_diff'])
-    period_colors = sorted(sky_colors[last_prayer['name']])
-    default_next_color, default_last_color =  [(c[0]/100, c[1]) for c in (min(sky_colors[next_prayer['name']]), max(sky_colors[sorted_prayers[-1]['name']]))]
-    default_next_color = (default_next_color[0]+1, default_next_color[1])
-    next_color = min((c for c in period_colors if c[0] >= ratio), default=default_next_color)
-    last_color = max((c for c in period_colors if c[0] <= ratio), default=default_last_color)
-    weight = (ratio - next_color[0])/(last_color[0] - next_color[0] or 1)
-    mixed = tuple(int(hex_to_rbg(next_color[1])[i]*(1 - weight) + hex_to_rbg(last_color[1])[i]*weight) for i in range(3))
+
+    city = LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]})
+    next_color = min((c for c in sky_colors if c[0] >= elevation(city, now)))
+    last_color = max((c for c in sky_colors if c[0] <= elevation(city, now)))
+    weight = (elevation(city, now) - next_color[0])/(last_color[0] - next_color[0] or 1)
+    mixed = tuple(round(hex_to_rbg(next_color[1])[i]*(1 - weight) + hex_to_rbg(last_color[1])[i]*weight) for i in range(3))
     current_color = "#{:02x}{:02x}{:02x}".format(*mixed)
 
     if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
