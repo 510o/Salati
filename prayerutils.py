@@ -2,6 +2,7 @@ from settings import app_path, read, sky_colors, hex_to_rbg
 if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 from datetime import datetime, timedelta, time as dt_time
 from astral import LocationInfo # pip install astral
+from pytz import timezone # pip install pytz
 from astral.sun import elevation
 from astral.moon import phase
 from math import cos, pi
@@ -55,7 +56,7 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     next_prayer, last_prayer, time_after = sorted_prayers[0], sorted_prayers[-1], read()['aladhan'][2]*60
     last_prayer['time_diff'] = abs(last_prayer['time_diff'] - 86400)
 
-    angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]}), now)
+    angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]}), timezone(read()["backup"]["meta"]["timezone"]).localize(now))
     next_color, last_color = min((c for c in sky_colors if c[0] >= angle)), max((c for c in sky_colors if c[0] <= angle))
     if angle < 0: weight = (1 + cos(2*pi*(phase(now)-14)/28))/2
     else: weight = (angle - next_color[0])/(last_color[0] - next_color[0])
