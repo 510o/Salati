@@ -65,4 +65,5 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
 
     if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
         return (last_prayer['name'], format_time(last_prayer['time_diff'], 1440), last_prayer['time_diff'], current_color)
-    return (next_prayer['name'], f"{'- '*(not read()['time format']['eastern']) or '\u200F- ' if read()['system'] != 'Linux' else '' if read()['time format']['eastern'] else '- '}{format_time(next_prayer['time_diff'], 1440)}{' -'*(read()['system'] == 'Linux' and read()['time format']['eastern'])}", -next_prayer['time_diff'], current_color)
+    eastern, linux = read()['time format']['eastern'], read()['system']=='Linux'
+    return (next_prayer['name'], f"{'\u200F'*(not linux and eastern)}{'- '*(not eastern)}{format_time(next_prayer['time_diff'], 1440)}{' -'*(linux and eastern)}", -next_prayer['time_diff'], current_color)
