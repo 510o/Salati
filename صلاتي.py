@@ -5,7 +5,7 @@ from prayerutils import *
 from settings import *
 import tkinter as tk
 
-root, working, size_history = tk.Tk(), True, (); root.title(app_title)
+root, notification_allowed, size_history = tk.Tk(), True, (); root.title(app_title)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
@@ -18,18 +18,15 @@ def themes() -> dict:
         return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 128 else 'white'}
 
 def notifications(prayer, _, time_left, __):
-    def time_out(): global working; working = not working
-    if working and prayer and time_left:
-        notifi = next((n for n in notifis.get(prayer, [[()]]) if n[0] == round(time_left/60, 2)), None)
-        if notifi:
-            notification.notify(app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
-            time_out(); root.after(10000, time_out)
+    if notification_allowed and prayer and time_left and (notifi := next((n for n in notifis.get(prayer, ((()))) if n[0] == round(time_left/60, 2)), None)):
+        def time_out(): global notification_allowed; notification_allowed = not notification_allowed
+        notification.notify(app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
+        time_out(); root.after(10000, time_out)
 
 def update(event):
     global reupdate_id
     if windows[0] == 'main':
-        window_size = event.width, event.height
-        if window_size[0] >= root.winfo_width() and window_size[1] >= root.winfo_height():
+        if (window_size := (event.width, event.height)) and window_size[0] >= root.winfo_width() and window_size[1] >= root.winfo_height():
             if reupdate_id: root.after_cancel(reupdate_id)
             shown_prayer = nearest_prayer(times, prayer_times) or [None, None, None, None]
             x_span = (window_size[0] - sum(width for element in labels.values() for width in element.values()))//(len(labels)+1)
@@ -68,9 +65,7 @@ def window():
     theme, labels = themes(), {} # { 'prayer': {('name', 'time'): width} }
     for key in prayer_times:
         if key not in exception_times:
-            labels[key] = {(tk.Label(root, text=prayer_times[key][islinux], font=data['font'], **theme), # الصلاة
-                tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', font=data['font'], **theme)): # وقتها
-                    int} # عرضها
+            labels[key] = {(tk.Label(root, text=prayer_times[key][islinux], font=data['font'], **theme), tk.Label(root, text=format_time(times.get(key)) if times else '--:--:--', font=data['font'], **theme)): int}
     line = tk.Frame(root, height=3, bg=theme['fg'])
     center_font = (data['font'][:1], round(data['font'][1]*1.5), data['font'][2:])
     time_left_label = tk.Label(root, **theme, font=center_font)

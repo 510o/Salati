@@ -20,8 +20,7 @@ def parse_time(time_str: str) -> dt_time:
 def format_time(time, format_type: int = read()['time format']['format']) -> str:
     if isinstance(time, (int, float, str)):
         if isinstance(time, str):
-            time_str = parse_time(time).strftime("%H %M %S")
-            if time_str: hours, minutes, seconds = map(int, time_str.split())
+            if time_str := parse_time(time).strftime("%H %M %S"): hours, minutes, seconds = map(int, time_str.split())
         else:
             total_seconds = abs(int(time))
             hours, rem = divmod(total_seconds, 3600)
@@ -42,20 +41,14 @@ def format_time(time, format_type: int = read()['time format']['format']) -> str
 
 def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     now, prayer_data = datetime.now(), []
-    for name, time_str in times.items():
-        pt = parse_time(time_str)
-        if name not in prayer_order or not pt: continue
-        prayer_dt = datetime.combine(now.date(), pt)
-        time_diff = (prayer_dt - now).total_seconds()
-        if time_diff < 0:
-            prayer_dt += timedelta(days=1)
-            time_diff = (prayer_dt - now).total_seconds()
-        prayer_data.append({ 'name': name, 'time_obj': pt,
-            'time_diff': time_diff})
+    for name in prayer_order:
+        if (time_str := times.get(name)) and (pt := parse_time(time_str)):
+            prayer_dt = datetime.combine(now.date(), pt)
+            if prayer_dt < now: prayer_dt += timedelta(days=1)
+            prayer_data.append(((prayer_dt - now).total_seconds(), name))
     if not prayer_data: return None
-    sorted_prayers = sorted(prayer_data, key=lambda x: x['time_diff'])
-    next_prayer, last_prayer, time_after = sorted_prayers[0], sorted_prayers[-1], read()['aladhan'][2]*60
-    last_prayer['time_diff'] = abs(last_prayer['time_diff'] - 86400)
+    sorted_data = sorted(prayer_data)
+    next_prayer, last_prayer = sorted_data[0], (abs(sorted_data[-1][0] - 86400), sorted_data[-1][1])
 
     angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["latitude", "longitude"]}), now.tzinfo)
     next_color, last_color = min((c for c in sky_colors if c[0] >= angle)), max((c for c in sky_colors if c[0] <= angle))
@@ -63,7 +56,7 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     else: weight = (next_color[0] - angle)/(next_color[0] - last_color[0])
     current_color = "#{:02x}{:02x}{:02x}".format(*tuple(round(hex_to_rgb(next_color[1])[i]*(1 - weight) + hex_to_rgb(last_color[1])[i]*weight) for i in range(3)))
 
-    if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
-        return (last_prayer['name'], format_time(last_prayer['time_diff'], 1440), last_prayer['time_diff'], current_color)
+    if last_prayer[0] <= read()['aladhan'][2]*60 and last_prayer[0] < next_prayer[0]:
+        return (last_prayer[1], format_time(last_prayer[0], 1440), last_prayer[0], current_color)
     eastern, linux = read()['time format']['eastern'], read()['system']=='Linux'
-    return (next_prayer['name'], f"{'\u200F'*(not linux and eastern)}{'- '*(not eastern)}{format_time(next_prayer['time_diff'], 1440)}{' -'*(linux and eastern)}", -next_prayer['time_diff'], current_color)
+    return (next_prayer[1], f"{'\u200F'*(not linux and eastern)}{'- '*(not eastern)}{format_time(next_prayer[0], 1440)}{' -'*(linux and eastern)}", -next_prayer[0], current_color)
