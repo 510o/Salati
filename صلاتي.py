@@ -13,7 +13,7 @@ def themes() -> dict:
     try: return {'bg': style,  'fg': 'black' if tuple(value//257 for value in root.winfo_rgb(style))[0] > 128 else 'white'}
     except:
         hex_color = (nearest_prayer(times, prayer_times) or [None, None, None, '#000000'])[3]
-        rgb = hex_to_rbg(hex_color)
+        rgb = hex_to_rgb(hex_color)
         lum = int(0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2])
         return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 128 else 'white'}
 

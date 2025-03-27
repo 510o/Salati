@@ -17,7 +17,7 @@ sky_colors = [ # https://coolors.co/color-picker
     (10, '#4096D7'), (50, '#31A2FF'),
     (70, '#44C4FF'), (90, '#00B6F8')] # ∠90 التعامد
 
-def hex_to_rbg(h):
+def hex_to_rgb(h):
     return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
 
 def Location():
@@ -31,7 +31,7 @@ def prayer_message(prayer):
         return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
-_cache, default_data = None, {"font": None, "time format": {'format': 12, 'arabic': False}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
+_cache, default_data = None, {"font": None, "time format": {'format': 12, 'eastern': True}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
     "notifications": {key: [(0, f"وقت {prayer_times[key][0]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
 def read() -> dict:
     if _cache: return _cache

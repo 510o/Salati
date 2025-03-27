@@ -1,4 +1,4 @@
-from settings import app_path, read, sky_colors, hex_to_rbg
+from settings import app_path, read, sky_colors, hex_to_rgb
 if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 from datetime import datetime, timedelta, time as dt_time
 from astral import LocationInfo # pip install astral
@@ -32,9 +32,11 @@ def format_time(time, format_type: int = read()['time format']['format']) -> str
         elif format_type == 1440: result = f" {hours}:{minutes:02}:{seconds:02}".replace(" 0:", '').lstrip()
         elif format_type == 3600: result = str(seconds + minutes*60 + hours*3600)
         else: result = f"{hours}:{minutes:02}:{seconds:02}"
-        if read()['time format']['arabic']:
+        if read()['time format']['eastern']:
             result = result.translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")).replace("AM", "ص").replace("PM", "م")
-            if len(result.split()) > 1 and read()['system'] == 'Linux': result = ' '.join((result.split()[1], result.split()[0]))
+            if read()['system'] == 'Linux':
+                if len(result.split()) > 1: result = ' '.join((result.split()[1], result.split()[0]))
+            else: result = "\u200F" + result
         return result
 
 
@@ -55,12 +57,12 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     next_prayer, last_prayer, time_after = sorted_prayers[0], sorted_prayers[-1], read()['aladhan'][2]*60
     last_prayer['time_diff'] = abs(last_prayer['time_diff'] - 86400)
 
-    angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["timezone", "latitude", "longitude"]}), now.tzinfo)
+    angle = elevation(LocationInfo(**{k: read()["backup"]["meta"][k] for k in ["latitude", "longitude"]}), now.tzinfo)
     next_color, last_color = min((c for c in sky_colors if c[0] >= angle)), max((c for c in sky_colors if c[0] <= angle))
     if angle < -10: weight = (1 + cos(2*pi*(phase(now)-14)/28))/2
-    else: weight = (angle - next_color[0])/(last_color[0] - next_color[0])
-    current_color = "#{:02x}{:02x}{:02x}".format(*tuple(round(hex_to_rbg(next_color[1])[i]*(1 - weight) + hex_to_rbg(last_color[1])[i]*weight) for i in range(3)))
+    else: weight = (next_color[0] - angle)/(next_color[0] - last_color[0])
+    current_color = "#{:02x}{:02x}{:02x}".format(*tuple(round(hex_to_rgb(next_color[1])[i]*(1 - weight) + hex_to_rgb(last_color[1])[i]*weight) for i in range(3)))
 
     if last_prayer['time_diff'] <= time_after and last_prayer['time_diff'] < next_prayer['time_diff']:
         return (last_prayer['name'], format_time(last_prayer['time_diff'], 1440), last_prayer['time_diff'], current_color)
-    return (next_prayer['name'], f'{format_time(next_prayer['time_diff'], 1440)} -' if read()['system'] == 'Linux' and read()['time format']['arabic'] else f'- {format_time(next_prayer['time_diff'], 1440)}', -next_prayer['time_diff'], current_color)
+    return (next_prayer['name'], f"{'- '*(not read()['time format']['eastern']) or '\u200F- ' if read()['system'] != 'Linux' else '' if read()['time format']['eastern'] else '- '}{format_time(next_prayer['time_diff'], 1440)}{' -'*(read()['system'] == 'Linux' and read()['time format']['eastern'])}", -next_prayer['time_diff'], current_color)
