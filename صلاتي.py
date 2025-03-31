@@ -5,7 +5,7 @@ from prayerutils import *
 from settings import *
 import tkinter as tk
 
-root, notification_allowed, size_history = tk.Tk(), True, (); root.title(app_title)
+root, notifi_allowed, size_history = tk.Tk(), True, (); root.title(app_title)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
@@ -18,8 +18,8 @@ def themes() -> dict:
         return {'bg': '#' + f'{lum:02x}'*3 if style == "monochrome" else hex_color, 'fg': 'black' if lum > 128 else 'white'}
 
 def notifications(prayer, _, time_left, __):
-    if notification_allowed and prayer and time_left and (notifi := next((n for n in notifis.get(prayer, ((()))) if n[0] == round(time_left/60, 2)), None)):
-        def time_out(): global notification_allowed; notification_allowed = not notification_allowed
+    if notifi_allowed and prayer and time_left and (notifi := next((n for n in notifis.get(prayer, ((()))) if n[0] == round(time_left/60, 2)), None)):
+        def time_out(): global notifi_allowed; notifi_allowed = not notifi_allowed
         notification.notify(app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
         time_out(); root.after(10000, time_out)
 
@@ -70,7 +70,7 @@ def window():
     center_font = (data['font'][:1], round(data['font'][1]*1.5), data['font'][2:])
     time_left_label = tk.Label(root, **theme, font=center_font)
     shown_prayer_label = tk.Label(root, **theme, font=center_font)
-    for obj in root.winfo_children(): obj.place(x=0, y=0) # ادراج العناصر
+    for obj in root.winfo_children(): obj.place(x=0, y=0)
     root.update_idletasks()
     
     x_offset, font_height = span, list(labels['Fajr'].keys())[0][0].winfo_height()

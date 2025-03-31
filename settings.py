@@ -1,9 +1,9 @@
 from json import load, dump; from requests import get
 
-app_icon, app_title, system = 'icon.png', 'صلاتي', __import__('platform').system()
+app_title, system = "صلاتي", __import__('platform').system()
 separator = '\\' if system == 'Windows' else '/'
 folder_path = __file__.rsplit(separator, 1)[0] + separator
-app_path, icon_path = folder_path + app_title + '.py', folder_path + app_icon
+app_path, data_path, icon_path = (folder_path + file_name for file_name in [app_title + ".py", ".settings", "icon.png"])
 if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 
 prayer_times, exception_times,  = {
@@ -36,7 +36,7 @@ _cache, default_data = None, {"font": None, "time format": {'format': 12, 'easte
 def read() -> dict:
     if _cache: return _cache
     try:
-        with open(".settings") as file:
+        with open(data_path) as file:
             data_payload = load(file)
             if not data_payload['aladhan'][0]: data_payload['aladhan'][0] = Location()
             for key, value in data_payload.items(): # تفكيك الصيغ المنصصة
@@ -54,6 +54,6 @@ def edit(new_section: dict) -> dict:
 def write(data: dict) -> dict: 
     global _cache
     if isinstance(data, dict) and data.keys() == default_data.keys():
-        with open(".settings", "w") as file:
+        with open(data_path, "w") as file:
             dump(data, file, indent=4); _cache = data; return data
     return write(default_data)
