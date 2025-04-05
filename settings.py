@@ -1,9 +1,8 @@
 from json import load, dump; from requests import get
 
-app_title, system = "صلاتي", __import__('platform').system()
-separator = '\\' if system == 'Windows' else '/'
-folder_path = __file__.rsplit(separator, 1)[0] + separator
-app_path, data_path, icon_path = (folder_path + file_name for file_name in [app_title + ".py", ".settings", "icon.png"])
+app_name, system = "صلاتي", __import__('platform').system()
+folder_path = __import__('pathlib').Path(__file__).parent
+app_path, data_path, icon_path = (str(folder_path/file_name) for file_name in [app_name + ".py", ".settings", "icon.png"])
 if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 
 prayer_times, exception_times,  = {
@@ -28,11 +27,11 @@ def Location():
 
 def prayer_message(prayer):
     try: # maybe: https://dorar-hadith-api.herokuapp.com/api/search
-        return '' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
+        return ' ' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
     except: return ''
 
 _cache, default_data = None, {"font": None, "time format": {'format': 12, 'eastern': True}, "aladhan": [Location(), "int", 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
-    "notifications": {key: [(0, f"وقت {prayer_times[key][0]}", prayer_message(prayer_times[key]))] for key in prayer_times if key not in exception_times}}
+    "notifications": {key: [] if key in exception_times else [(0, f"وقت {prayer_times[key][0]}", prayer_message(prayer_times[key]))] for key in prayer_times}}
 def read() -> dict:
     if _cache: return _cache
     try:

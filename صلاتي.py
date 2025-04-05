@@ -5,7 +5,7 @@ from prayerutils import *
 from settings import *
 import tkinter as tk
 
-root, notifi_allowed, size_history = tk.Tk(), True, (); root.title(app_title)
+root, notifi_allowed, size_history = tk.Tk(), True, (); root.title(app_name)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
 except tk.TclError as e: print(e)
 
@@ -20,7 +20,7 @@ def themes() -> dict:
 def notifications(prayer, _, time_left, __):
     if notifi_allowed and prayer and time_left and (notifi := next((n for n in notifis.get(prayer, ((()))) if n[0] == round(time_left/60, 2)), None)):
         def time_out(): global notifi_allowed; notifi_allowed = not notifi_allowed
-        notification.notify(app_name=app_title, title=notifi[1], message=notifi[2], app_icon=app_icon)
+        notification.notify(app_name, 0, icon_path, notifi[1], notifi[2], [], {}, -1)
         time_out(); root.after(10000, time_out)
 
 def update(event):
