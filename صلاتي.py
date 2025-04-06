@@ -21,6 +21,7 @@ if port := read()['lastport']:
                 c.sendall(FILELOCK)
                 manage_port()
         except ConnectionRefusedError: manage_port()
+else: manage_port()
 
 root, notifi_allowed, size_history = tk.Tk(), True, (); root.title(app_name)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
