@@ -1,9 +1,26 @@
 from tkinter import font as fonts
+from threading import Thread
 from plyer import notification # pip install plyer
-from requests import get # pip install requests
 from prayerutils import *
 from settings import *
 import tkinter as tk
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+def manage_port(port=0):
+    server.bind(('localhost', port))
+    edit({"lastport": port or server.getsockname()[1]})
+    server.listen()
+    Thread(target=lambda: (__import__("os")._exit(0) if server.accept()[0].recv(len(FILELOCK)) == FILELOCK else None), daemon=True).start()
+if port := read()['lastport']:
+    try: manage_port(port)
+    except OSError:
+        try:
+            with socket.socket(socket.AF_INET) as c:
+                c.connect(('localhost', port))
+                c.sendall(FILELOCK)
+                manage_port()
+        except ConnectionRefusedError: manage_port()
 
 root, notifi_allowed, size_history = tk.Tk(), True, (); root.title(app_name)
 try: root.iconphoto(True, tk.PhotoImage(file=icon_path))
@@ -56,7 +73,7 @@ def update(event):
 def window():
     global windows, style, reupdate_id, labels, font_height, line, center_font, frame_heights, times, time_left_label, shown_prayer_label, islinux, notifis, size_history
     data = read()
-    try: data = edit({'backup': get(f"https://api.aladhan.com/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}{('&method=' + str(data['aladhan'][1])) if data['aladhan'][1] != 'int' else ''}").json()["data"]})
+    try: data = edit({'backup': get('api.aladhan.com', f'/v1/timings?latitude={data['aladhan'][0][0]}&longitude={data['aladhan'][0][1]}{('&method=' + str(data['aladhan'][1])) if data['aladhan'][1] else ''}')["data"]})
     except: pass # https://aladhan.com/prayer-times-api
     if not data["font"]:
         family, size, weight, slant = map(fonts.nametofont("TkDefaultFont").actual().get, ["family", "size", "weight", "slant"])
