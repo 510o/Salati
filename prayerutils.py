@@ -18,7 +18,7 @@ def parse_time(time) -> dt_time:
         except ValueError: continue
     return None
 
-def format_time(time, format_type: int = data_manager()['time format']['format']) -> str:
+def format_time(time, format_type: int = data_manager()['time format']['format'], direct: bool = False) -> str:
     if isinstance(time, (int, float, str)):
         if isinstance(time, str):
             if time_str := parse_time(time).strftime("%H %M %S"): hours, minutes, seconds = map(int, time_str.split())
@@ -31,6 +31,7 @@ def format_time(time, format_type: int = data_manager()['time format']['format']
         elif format_type == 1440: result = f" {hours}:{minutes:02}:{seconds:02}".replace(" 0:", '').lstrip()
         elif format_type == 3600: result = str(seconds + minutes*60 + hours*3600)
         else: result = f"{hours}:{minutes:02}:{seconds:02}"
+        if direct: return result
         if data_manager()['time format']['eastern']:
             result = result.translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")).replace("AM", "ص").replace("PM", "م")
             if islinux:
