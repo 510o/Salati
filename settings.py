@@ -1,8 +1,17 @@
-from requests import get; import socket
+from subprocess import Popen, DEVNULL, check_call
+import os, signal, socket, importlib.util, json
+from sys import executable, platform
+from copy import deepcopy
 
-app_name, system, FILELOCK = "صلاتي", __import__('platform').system(), b"@$H0W-Y0UR$ELF@"
+app_name, venv_path = "صلاتي", executable
 folder_path = __import__('pathlib').Path(__file__).parent
-app_path, data_path, icon_path = (str(folder_path/file_name) for file_name in [app_name + ".py", ".settings", "icon.png"])
+app_path, data_path, notifi_path, icon_path = (str(folder_path/file_name) for file_name in [app_name + ".py", ".settings", "notifications.py", "icon.png"])
+folder_path = str(folder_path)
+
+def external_libraries(lib: str):
+    if not importlib.util.find_spec(lib): check_call([venv_path, "-m", "pip", "install", lib])
+external_libraries("psutil");from psutil import process_iter, AccessDenied, NoSuchProcess
+
 if __name__ == "__main__": exec(open(app_path).read()); raise SystemExit
 
 prayer_times, exception_times,  = {
@@ -18,50 +27,45 @@ sky_colors = [ # https://coolors.co/color-picker
 
 def hex_to_rgb(h): return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
 
+def deduplicate(index):
+    for proc in process_iter(['pid', 'name', 'cwd', 'cmdline']):
+        try:
+            if proc.info['name'] == "python" and proc.pid != os.getpid():
+                path = os.path.realpath(os.path.join(proc.info['cwd'], proc.info['cmdline'][1]))
+                if (not index and path != notifi_path and os.path.dirname(path) == folder_path) or (index and path == notifi_path):
+                    os.kill(proc.pid, signal.SIGKILL)
+        except (NoSuchProcess, AccessDenied, IndexError): continue
+
 def get(host, path):
-    with __import__("ssl").create_default_context().wrap_socket(socket.create_connection((host, 443)), server_hostname=host) as secure_socket:
-        secure_socket.send(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
-        response = b""
-        while chunk := secure_socket.recv(1<<10): response += chunk
-        response = response.decode()
-        if 'application/json' in response: return __import__("json").loads(response[response.find("{"):response.rfind("}")+1])
-        elif int(response.split("\n")[0].split()[1]) in [301, 302]:
-            return get(host, next((line for line in response.split('\n') if line.lower().startswith('location: ')), None).split()[1])
+    try:
+        with __import__("ssl").create_default_context().wrap_socket(socket.create_connection((host, 443), timeout=5), server_hostname=host) as secure_socket:
+            secure_socket.send(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
+            response = b""
+            while chunk := secure_socket.recv(1<<10): response += chunk
+            response = response.decode()
+            if 'application/json' in response: return json.loads(response[response.find("{"):response.rfind("}")+1])
+            elif int(response.split("\n")[0].split()[1]) in [301, 302]:
+                return get(host, next((line for line in response.split('\n') if line.lower().startswith('location: ')), None).split()[1])
+    except (TimeoutError, socket.gaierror): pass
 
 def Location():
-    try:
-        lat, lon = get('ipinfo.io', '/json')["loc"].split(",")
-        return float(lat), float(lon)
-    except: pass
+    if ipconfig := get('ipwho.is', '/'): return float(ipconfig['latitude']), float(ipconfig['longitude'])
 
-def prayer_message(prayer):
-    try: # maybe: https://dorar-hadith-api.herokuapp.com/api/search
-        return ' ' # استدعاء أحاديث وفوائد لوضعها مع محتوى الإشعارات الإفتراضية
-    except: return ''
+def prayer_message(prayer): return ""
 
-_cache, default_data = None, {"font": None, "time format": {'format': 12, 'eastern': True}, "aladhan": [Location(), None, 35], "backup": {}, "system": system, "style": (1, "colors", "monochrome", "white", "black"), 
-    "notifications": {key: [] if key in exception_times else [(0, f"وقت {prayer_times[key][0]}", prayer_message(prayer_times[key]))] for key in prayer_times}, "lastport": None}
-def read() -> dict:
-    if _cache: return _cache
-    try:
-        with open(data_path) as file:
-            data_payload = __import__("json").load(file)
-            if not data_payload['aladhan'][0]: data_payload['aladhan'][0] = Location()
-            for key, value in data_payload.items(): # تفكيك الصيغ المنصصة
-                if isinstance(value, list): data_payload[key] = [globals().get(v, v) if isinstance(v, str) else v for v in value]
-            return write(data_payload)
-    except: return write(default_data)
+_cache, default_data = {}, {"font": None, "time format": {'format': 12, 'eastern': True}, "aladhan": {"location": Location(), "method": None, "elapsed time": 35}, "backup": {}, "style": (1, "colors", "monochrome", "white", "black"), 
+    "notifications": [True, {key: [] if key in exception_times else [{"enabled": True, "offset": 0, "title": f"وقت {prayer_times[key][0]}", "message": prayer_message(prayer_times[key])}] for key in prayer_times}]}
 
-def edit(new_section: dict) -> dict:
-    data = read()
-    for key, value in new_section.items():
-        if key in default_data:
-            data[key] = value
-    return write(data)
-
-def write(data: dict) -> dict: 
+def data_manager(data: dict = None, new_section: dict = None) -> dict: 
     global _cache
+    if not data:
+        try:
+            with open(data_path) as file: data = json.load(file)
+        except (FileNotFoundError, json.decoder.JSONDecodeError): data = default_data
     if isinstance(data, dict) and data.keys() == default_data.keys():
-        with open(data_path, "w") as file:
-            __import__("json").dump(data, file, indent=4); _cache = data; return data
-    return write(default_data)
+        if new_section: data.update(new_section)
+        if not data['aladhan']['location']: data['aladhan']['location'] = Location()
+        if data == _cache:  return data
+        with open(data_path, "w") as file: json.dump(data, file, indent=4)
+        _cache = deepcopy(data); return deepcopy(data)
+    return data_manager(default_data)
