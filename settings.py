@@ -5,8 +5,8 @@ from copy import deepcopy
 
 app_name, venv_path = "صلاتي", executable
 folder_path = __import__('pathlib').Path(__file__).parent
-app_path, data_path, notifi_path, icon_path = (str(folder_path/file_name) for file_name in [app_name + ".py", ".settings", "notifications.py", "icon.png"])
-folder_path = str(folder_path)
+app_path, data_path, notifi_path, icon_path = ((folder_path/file_name).as_posix() for file_name in [app_name + ".py", ".settings", "notifications.py", "icon.png"])
+folder_path = folder_path.as_posix()
 
 def external_libraries(lib: str):
     if not importlib.util.find_spec(lib): check_call([venv_path, "-m", "pip", "install", lib])

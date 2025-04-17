@@ -1,6 +1,6 @@
+from settings import Popen, DEVNULL, app_name, data_manager, deduplicate, prayer_times, exception_times, platform, icon_path, notifi_path, get, hex_to_rgb, venv_path
 from tkinter import font as fonts
 from prayerutils import *
-from settings import *
 import tkinter as tk
 
 deduplicate(0)
