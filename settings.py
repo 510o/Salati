@@ -34,7 +34,7 @@ def deduplicate(index):
                 path = os.path.realpath(os.path.join(proc.info['cwd'], proc.info['cmdline'][1]))
                 if (not index and path != notifi_path and os.path.dirname(path) == folder_path) or (index and path == notifi_path):
                     os.kill(proc.pid, signal.SIGKILL)
-        except (NoSuchProcess, AccessDenied, IndexError): continue
+        except (NoSuchProcess, AccessDenied, IndexError, TypeError): continue
 
 def get(host, path):
     try:

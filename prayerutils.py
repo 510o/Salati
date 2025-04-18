@@ -61,4 +61,4 @@ def nearest_prayer(times: dict, prayer_order: dict) -> tuple:
     if last_prayer[0] <= data['aladhan']['elapsed time']*60 and last_prayer[0] < next_prayer[0]:
         return (last_prayer[1], format_time(last_prayer[0], 1440), last_prayer[0], current_color)
     eastern = data['time format']['eastern']
-    return (next_prayer[1], f"{'\u200F'*(not islinux and eastern)}{'- '*(not eastern)}{format_time(next_prayer[0], 1440)}{' -'*(islinux and eastern)}", -next_prayer[0], current_color)
+    return (next_prayer[1], f"{'\u200F'*(not islinux and eastern)}{'- '*(not eastern)}{format_time(next_prayer[0], 1440)}{' -'*eastern}", -next_prayer[0], current_color)
