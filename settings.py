@@ -1,7 +1,8 @@
 from subprocess import Popen, DEVNULL, check_call
-import os, signal, socket, importlib.util, json
+import os, socket, importlib.util, json
 from sys import executable, platform
 from copy import deepcopy
+from signal import SIGKILL
 
 app_name, venv_path = "صلاتي", executable
 folder_path = __import__('pathlib').Path(__file__).parent
@@ -30,10 +31,11 @@ def hex_to_rgb(h): return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
 def deduplicate(index):
     for proc in process_iter(['pid', 'name', 'cwd', 'cmdline']):
         try:
-            if proc.info['name'] == "python" and proc.pid != os.getpid():
-                path = os.path.realpath(os.path.join(proc.info['cwd'], proc.info['cmdline'][1]))
-                if (not index and path != notifi_path and os.path.dirname(path) == folder_path) or (index and path == notifi_path):
-                    os.kill(proc.pid, signal.SIGKILL)
+            if proc.pid != os.getpid():
+                for arg in proc.info['cmdline']:
+                    path = os.path.realpath(os.path.join(proc.info['cwd'], arg))
+                    if (not index and path != notifi_path and os.path.dirname(path) == folder_path) or (index and path == notifi_path):
+                        os.kill(proc.pid, SIGKILL)
         except (NoSuchProcess, AccessDenied, IndexError, TypeError): continue
 
 def get(host, path):
