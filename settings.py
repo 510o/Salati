@@ -2,7 +2,11 @@ from subprocess import Popen, DEVNULL, check_call
 import os, socket, importlib.util, json
 from sys import executable, platform
 from copy import deepcopy
-from signal import SIGKILL
+import sys
+if sys.platform == 'win32':
+    SIGKILL = 9  # Windows does not define SIGKILL, but os.kill with 9 is equivalent
+else:
+    from signal import SIGKILL
 
 app_name, venv_path = "صلاتي", executable
 folder_path = __import__('pathlib').Path(__file__).parent
