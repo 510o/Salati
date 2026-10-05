@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 from sys import platform
 from typing import Callable, Dict, Tuple
 
-from .config import APP_NAME, ASSETS_DIR, PRAYER_ORDER, PRAYER_LABELS
+from .config import APP_NAME, ASSETS_DIR, PRAYER_ORDER
+from .i18n import minutes, prayer_name, tr
 from .prayer_logic import next_notification
 from .storage import get_settings
 
@@ -17,11 +18,11 @@ MAX_SLEEP, GRACE = 30, timedelta(seconds=60)  # re-check settings at least every
 
 
 def message(prayer: str, offset: int) -> Tuple[str, str]:
-    """(title, text) for a prayer notification; offset in minutes, negative = before the prayer."""
-    name = PRAYER_LABELS[prayer]
-    if offset == 0: return f"وقت {name}", f"حان الآن وقت {name}"
-    if offset < 0: return name, f"بقي {-offset} دقيقة على {name}"
-    return name, f"مضت {offset} دقيقة على {name}"
+    """(title, text) in the UI language; offset in minutes, negative = before the prayer."""
+    name = prayer_name(prayer)
+    if offset == 0: return name, tr("حان الآن موعد {0}", name)
+    if offset < 0: return name, tr("يتبقى {0} على {1}", minutes(-offset), name)
+    return name, tr("مضى على دخول وقت {1} {0}", minutes(offset), name)
 
 
 def send(title: str, text: str) -> None:
@@ -29,10 +30,10 @@ def send(title: str, text: str) -> None:
         script = f'display notification {_quote(text)} with title {_quote(title)}'
         subprocess.run(["osascript", "-e", script], check=False)
     elif platform.startswith("linux"):
-        subprocess.run(["notify-send", "-i", ICON, "-a", APP_NAME, title, text], check=False)
+        subprocess.run(["notify-send", "-i", ICON, "-a", tr(APP_NAME), title, text], check=False)
     else:
         from plyer import notification
-        notification.notify(title=title, message=text, app_name=APP_NAME, timeout=10)
+        notification.notify(title=title, message=text, app_name=tr(APP_NAME), timeout=10)
 
 
 def _quote(s: str) -> str:  # AppleScript string literal

@@ -1,6 +1,7 @@
 """Visual check of Arabic rendering on this OS. Run: python tests/render_check.py
 For each sample the first row is the raw text, the second is src.text.render(). The right one is the row that
-reads correctly (right-to-left, letters joined, lam-alef ligatures). Report which one per OS -> that is the "auto" rule."""
+reads correctly (first word at the right, letters joined). Windows and Linux need the second row; the OS where the
+raw row is right should be left out of the "auto" rule in src/text.py (macOS is assumed raw and still unverified)."""
 import sys
 import tkinter as tk
 from pathlib import Path

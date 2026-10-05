@@ -1,5 +1,6 @@
 """Smoke test: builds the real windows (hidden). Skipped when there is no display."""
 import json
+import re
 import tempfile
 import tkinter
 import unittest
@@ -42,7 +43,7 @@ class Windows(unittest.TestCase):
     def test_shows_loaded_day(self):
         self.assertTrue(pump(self.window, lambda: self.window.times))
         self.assertEqual(self.window.times, DAY["timings"])
-        self.assertEqual(self.window.date_label.cget("text"), display("الإثنين ٢٤ ربيع الآخر ١٤٤٨"))
+        self.assertEqual(self.window.date_label.cget("text"), display("الاثنين ٢٤ ربيع الآخر ١٤٤٨"))
         self.assertEqual(self.window.cards["Fajr"][1].cget("text"), display("٥:٢٤ ص"))
         self.assertNotEqual(self.window.count_label.cget("text"), display("--:--:--"))  # countdown is running
 
@@ -58,7 +59,34 @@ class Windows(unittest.TestCase):
         saved = json.loads(self.path.read_text(encoding="utf-8"))
         self.assertEqual((saved["eastern_digits"], saved["time_format"], saved["notify_Fajr"]), (False, 24, [-10, 0]))
         self.assertEqual(self.window.cards["Fajr"][1].cget("text"), "05:24")                 # window rebuilt with new format
-        self.assertEqual(self.window.date_label.cget("text"), display("الإثنين 24 ربيع الآخر 1448"))
+        self.assertEqual(self.window.date_label.cget("text"), display("الاثنين 24 ربيع الآخر 1448"))
+
+    def test_english_interface(self):
+        pump(self.window, lambda: self.window.times)
+        self.window.open_settings()
+        win = self.window._settings_window
+        win.fields["language"].set("en")
+        win.save()
+        self.assertEqual(self.window.date_label.cget("text"), "Monday 24 Rabi' al-Thani 1448")
+        self.assertEqual(self.window.cards["Fajr"][1].cget("text"), "5:24 AM")        # AM/PM and Western digits
+        self.assertEqual(self.window.count_label.cget("text").replace(":", "").isdigit(), True)
+        self.assertEqual(self.window.title(), "Salati")
+        self.window.open_settings()
+        self.assertEqual(self.arabic_texts(self.window), [])
+        self.assertEqual(self.arabic_texts(self.window._settings_window), [])
+        self.assertEqual(self.window._settings_window.title(), "Settings")
+
+    @staticmethod
+    def arabic_texts(widget):
+        """Arabic strings visible anywhere in the widget tree (labels, buttons, menu values), except language names."""
+        found = []
+        for w in [widget, *widget.winfo_children()]:
+            for option in ("text", "values"):
+                try: value = w.cget(option)
+                except Exception: continue
+                found += [v for v in ([value] if isinstance(value, str) else value) if re.search("[؀-ۿ]", v) and v != "العربية"]
+            found += Windows.arabic_texts(w) if w is not widget else []
+        return found
 
     def test_invalid_input_keeps_window_open_and_saves_nothing(self):
         self.window.open_settings()

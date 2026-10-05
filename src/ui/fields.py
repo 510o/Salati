@@ -1,6 +1,7 @@
 """One input widget per Setting kind, behind a uniform get()/set()."""
 import customtkinter as ctk
 
+from ..i18n import tr
 from ..schema import Setting
 from ..text import display
 
@@ -14,7 +15,7 @@ class Field:
             self.var = ctk.BooleanVar()
             self.widget = ctk.CTkSwitch(parent, text="", variable=self.var, width=50)
         elif setting.kind == "choice":
-            self.var, self._shown = ctk.StringVar(), {value: display(label) for value, label in setting.choices}  # value -> shown text
+            self.var, self._shown = ctk.StringVar(), {value: display(tr(label)) for value, label in setting.choices}  # value -> shown text
             self.widget = ctk.CTkOptionMenu(parent, values=list(self._shown.values()), variable=self.var, font=font, dropdown_font=font)
         else:
             self.var = ctk.StringVar()

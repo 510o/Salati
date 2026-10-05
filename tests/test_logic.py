@@ -64,10 +64,15 @@ class FormatClock(unittest.TestCase):
 
 
 class Notifier(unittest.TestCase):
+    def setUp(self):
+        patcher = patch("src.i18n.get_settings", lambda: {"language": "ar"})  # never read the user's real settings
+        patcher.start(); self.addCleanup(patcher.stop)
+
     def test_messages(self):
-        self.assertEqual(notifier.message("Fajr", 0), ("وقت الفجر", "حان الآن وقت الفجر"))
-        self.assertEqual(notifier.message("Fajr", -10)[1], "بقي 10 دقيقة على الفجر")
-        self.assertEqual(notifier.message("Fajr", 15)[1], "مضت 15 دقيقة على الفجر")
+        self.assertEqual(notifier.message("Fajr", 0), ("صلاة الفجر", "حان الآن موعد صلاة الفجر"))
+        self.assertEqual(notifier.message("Fajr", -10)[1], "يتبقى 10 دقائق على صلاة الفجر")
+        self.assertEqual(notifier.message("Fajr", 15)[1], "مضى على دخول وقت صلاة الفجر 15 دقيقة")
+        self.assertEqual(notifier.message("Sunrise", 0), ("الشروق", "حان الآن موعد الشروق"))  # "صلاة" only for the five prayers
 
     def test_thread_fires_a_due_event_once_and_stops(self):
         fired, done = [], threading.Event()
@@ -79,7 +84,7 @@ class Notifier(unittest.TestCase):
             worker.start()
             self.assertTrue(done.wait(5), "notification never fired")
             worker.stop(); worker.join(3)
-        self.assertEqual(fired, [("وقت الظهر", "حان الآن وقت الظهر")])
+        self.assertEqual(fired, [("صلاة الظهر", "حان الآن موعد صلاة الظهر")])
         self.assertFalse(worker.is_alive())
 
 
